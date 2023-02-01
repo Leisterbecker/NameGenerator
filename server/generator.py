@@ -1,7 +1,8 @@
 import random
 
 class Generator:
-    def __init__(self, depth, minlen, maxlen, m_init, m_mid, m_tail):
+    def __init__(self, name, depth, minlen, maxlen, m_init, m_mid, m_tail):
+        self.name = name
         self.depth = depth
         self.minlen = minlen
         self.maxlen = maxlen
