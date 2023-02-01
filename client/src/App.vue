@@ -4,9 +4,11 @@ import InputNumber from "primevue/inputnumber";
 import Dropdown from "primevue/dropdown";
 import MultiSelect from "primevue/multiselect"
 import Button from "primevue/button";
+import TabPanel from "primevue/tabpanel";
+import TabView from "primevue/tabview";
 import {computed, onMounted, ref} from "vue";
 
-let output = ref();
+let outputs = ref(new Array<{ generator: string, values: string }>)
 let chosenFiles = ref([]);
 let fileNames = ref([]);
 let depthCreate = ref(3);
@@ -56,15 +58,15 @@ async function generateNames() {
     body: JSON.stringify(params)
   });
   const data: [] = await response.json();
-  output.value = data.join("");
+  outputs.value.push({generator: chosenGenerator.value, values: data.join("")});
 }
 
 const _gennames = computed(() => {
   return generatorNames.value;
 })
 
-const _output = computed(() => {
-  return output.value
+const _outputs= computed(() => {
+  return outputs.value
 })
 </script>
 
@@ -125,7 +127,11 @@ const _output = computed(() => {
       <div>{{ chosenFiles.map((file) => file.split("/").slice(-1)[0]).join(", ") }}</div>
     </section>
     <section class="output">
-      <div class="outputfield">{{output}}</div>
+      <TabView>
+        <TabPanel v-for="(output,index) in _outputs" :key="index" :header="output.generator">
+          {{output.values}}
+        </TabPanel>
+      </TabView>
     </section>
   </div>
 </template>
@@ -210,7 +216,7 @@ h1 {
 
 .output {
   display: flex;
-  padding-top: 3em;
+  padding: 0.5em;
   width: inherit;
   border: 1px solid black;
 }
