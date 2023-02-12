@@ -23,7 +23,7 @@ let chosenGenerator = ref("");
 
 onMounted(async() => {
   await loadFileNames();
-  //await loadGeneratorNames();
+  await loadGeneratorNames();
 });
 
 async function loadFileNames(){
@@ -50,6 +50,18 @@ async function createGenerator(){
   await loadGeneratorNames();
 }
 
+async function removeGenerator(name: string){
+  let params = { name: name };
+  const response = await fetch("http://127.0.0.1:5000/remove_generator", {
+    method: 'DELETE',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(params)
+  });
+  const data: string = await response.json();
+  await loadGeneratorNames();
+
+}
+
 async function generateNames() {
   let params = { generator_name: chosenGenerator.value,amount: amount.value, depth: depthGen.value, lmin: lmin.value, lmax: lmax.value};
   const response = await fetch("http://127.0.0.1:5000/generate_names", {
@@ -68,6 +80,16 @@ const _gennames = computed(() => {
 const _outputs= computed(() => {
   return outputs.value
 })
+
+function downloadResult (index:number) {
+  console.log("index " + index);
+  const blob = new Blob([_outputs.value[index].values], { type: 'plain/text' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = _outputs.value[index].generator+".txt"
+  link.click()
+  URL.revokeObjectURL(link.href)
+}
 </script>
 
 <template>
@@ -80,7 +102,7 @@ const _outputs= computed(() => {
         <div class="control-fields">
           <span>
             <label>Eingabedateien:</label>
-            <MultiSelect :options="fileNames" v-model="chosenFiles" >
+            <MultiSelect :options="fileNames" v-model="chosenFiles" placeholder="Bitte wählen Sie" >
               <template #option="slotProps">
                 {{ slotProps.option.split("/").slice(-1)[0] }}
               </template>
@@ -101,7 +123,12 @@ const _outputs= computed(() => {
         <div class="control-fields">
           <span>
             <label>Generatorauswahl:</label>
-            <Dropdown :options="_gennames" v-model="chosenGenerator" />
+            <Dropdown :options="_gennames" v-model="chosenGenerator" placeholder="Bitte wählen Sie">
+              <template #option="slotProps">
+                <label>{{slotProps.option}}</label>
+                <button icon="pi pi-plus" @click="removeGenerator(slotProps.option)"/>
+              </template>
+            </Dropdown>
           </span>
           <span>
             <label>Tiefe:</label>
@@ -129,6 +156,7 @@ const _outputs= computed(() => {
     <section class="output">
       <TabView>
         <TabPanel v-for="(output,index) in _outputs" :key="index" :header="output.generator">
+          <Button label="Download" @click.prevent="downloadResult(index)" style="padding-right: 1em"/>
           {{output.values}}
         </TabPanel>
       </TabView>
@@ -163,7 +191,7 @@ h1 {
 }
 
 .column {
-  height: 30vh;
+  height: 40vh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;

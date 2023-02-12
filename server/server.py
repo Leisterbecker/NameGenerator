@@ -13,8 +13,12 @@ def index():
 
 @app.route("/create_generator", methods = ['POST'])
 def create_generator():
-
     return jsonify(ng.create_generator(request.json['name'], request.json['depth'],request.json['filenames'],request.json['optional_values'], request.json['lmin'], request.json['lmax']))
+
+
+@app.route("/remove_generator", methods = ['DELETE'])
+def remove_generator():
+    return jsonify(ng.remove_generator(request.json['name']))
 
 @app.route("/get_generators")
 def get_generators():
